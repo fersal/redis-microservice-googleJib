@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Enable following block to see detailed hibernate queries with params -->
+    <!--
+    http://www.mkyong.com/hibernate/how-to-configure-logging-in-hibernate-logback/
+    -->
+    <!--
+    <logger name="org.hibernate.type" level="ALL" />
+    <logger name="org.hibernate" level="DEBUG" />
+    -->
+
+    <logger name="ad.cacheservice" level="INFO" />
+    <!--
+    <logger name="org.springframework.web" level="DEBUG" />
+    -->
+    <!-- to see profile resolution log statements
+    <logger name="org.springframework.core.env" level="DEBUG"/>
+    <logger name="org.springframework.http.converter.json" level="ERROR"/>
+    <logger name="org.apache.http.client" level="ERROR" />
+    <logger name="org.springframework.ui.freemarker" level="DEBUG"/>
+    <logger name="org.springframework.transaction.PlatformTransactionManager" level="ERROR"/>
+    <logger name="org.springframework.transaction.TransactionTemplate" level="ERROR"/>
+    <logger name="org.springframework.orm.jpa.JpaTransactionManager" level="ERROR"/>
+     -->
+
+    <!-- Strictly speaking, the level attribute is not necessary since -->
+    <!-- the level of the root level is set to DEBUG by default.       -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

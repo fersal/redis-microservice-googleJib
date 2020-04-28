@@ -1,0 +1,113 @@
+import java.text.SimpleDateFormat
+
+buildscript {
+	ext {
+		springBootVersion = '2.0.5.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+plugins {
+    id 'com.google.cloud.tools.jib' version '1.3.0'
+}
+
+jib.container.useCurrentTimestamp = true
+
+jib {
+    from {
+        image = 'java:8-jdk-alpine'
+    }
+    to {
+        image = 'docker.io/fersalaccess/test:cache-service'
+//        image = '255621877087.dkr.ecr.us-west-2.amazonaws.com/access'         //my AWS
+        credHelper = 'ecr-login'
+        tags = ['latest']
+    }
+    container {
+        jvmFlags = ['-Xms512m']
+        mainClass = 'ad.cacheservice.CacheServiceApplication'
+        environment = [externalvar:'Running Docker environment']
+        ports = ['8080']   //hardcoded in app.properties
+//        labels = [key1:'value1', key2:'value2']
+        format = 'OCI'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'maven-publish'
+
+sourceCompatibility = 1.8
+
+group = 'ad'
+if (!project.hasProperty('BUILD_NUMBER')) {
+    version = "0.0.1-SNAPSHOT"
+} else {
+    version = "1.${BUILD_NUMBER}"
+}
+
+repositories {
+	mavenCentral()
+}
+
+/**
+ * This updates the Spring Boot actuator info endpoint with version and other user info.
+ */
+springBoot {
+    buildInfo {
+        properties {
+            // Generate extra build info.
+            additional = [
+                    name       : 'cache-service',
+                    description: 'Cache Service API.',
+                    // Override buildInfo property time
+                    time       : buildTime()
+            ]
+        }
+    }
+}
+
+def buildTime() {
+    final dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ")
+    dateFormat.timeZone = TimeZone.getTimeZone('GMT')
+    dateFormat.format(new Date())
+}
+
+wrapper {
+    gradleVersion = '4.9'
+}
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-actuator')
+	implementation('org.springframework.boot:spring-boot-starter-hateoas')
+	implementation('org.springframework.boot:spring-boot-starter-web')
+	implementation('com.stripe:stripe-java:7.0.0')
+	compile 'org.projectlombok:lombok:1.18.2'
+	compile 'org.apache.commons:commons-lang3:3.8.1'
+    compile 'redis.clients:jedis:2.9.0'
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation('org.springframework.restdocs:spring-restdocs-mockmvc')
+	testImplementation('org.springframework.security:spring-security-test')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId 'ad'
+            artifactId 'java-rest-app-cacheservice'
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "${buildDir}/repo"
+        }
+    }
+}
